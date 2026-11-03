@@ -18,7 +18,7 @@
 
 ## 插件接口
 
-接口(broker 插件的 `heraldp_cmd_*` / `heraldp_cmdf_*` / `HERALDP_START` / `HERALDP_IDLE` / `HERALDP_ATTACH` / `HERALDP_SELFTEST` / `HERALDP_DIAG`,heraldctl 插件的 `heraldctl_cmd_*` / `HERALDCTL_HELP`)的完整说明在 [herald-core/README.md](https://github.com/CharlesGool/TB321FU-GSI-Mods/blob/main/patches/required/general/herald-core/README.md)。
+接口(broker 插件的 `heraldp_cmd_*` / `heraldp_cmdf_*` / `HERALDP_START` / `HERALDP_IDLE` / `HERALDP_ASYNC` / `HERALDP_ATTACH` / `HERALDP_SELFTEST` / `HERALDP_DIAG`,heraldctl 插件的 `heraldctl_cmd_*` / `HERALDCTL_HELP`)的完整说明在 [herald-core/README.md](https://github.com/CharlesGool/TB321FU-GSI-Mods/blob/main/patches/required/general/herald-core/README.md)。
 
 ## 整组独立发布
 

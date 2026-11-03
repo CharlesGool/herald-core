@@ -2,6 +2,11 @@
 
 [English](../en/CHANGELOG.md) · Español · [简体中文](../CHANGELOG.md)
 
+## V1.4 — 2026-11-04
+
+### Añadido
+- La interfaz de plugins del broker añade `HERALDP_ASYNC`: los plugins pueden declarar comandos lentos para ejecutarlos en segundo plano sin bloquear el bucle principal (opcional; el conjunto vacío por defecto mantiene el comportamiento sin cambios).
+
 ## V1.3 — 2026-11-04
 
 ### Corregido

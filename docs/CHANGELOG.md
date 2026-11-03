@@ -2,6 +2,11 @@
 
 [English](en/CHANGELOG.md) · [Español](es/CHANGELOG.md) · 简体中文
 
+## V1.4 — 2026-11-04
+
+### 新增
+- broker 插件接口加 `HERALDP_ASYNC`:插件可声明慢命令后台执行,不阻塞主循环(可选,默认空集则行为不变)。
+
 ## V1.3 — 2026-11-04
 
 ### 修复
