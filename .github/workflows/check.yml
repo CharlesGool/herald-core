@@ -17,9 +17,11 @@ jobs:
           repository: CharlesGool/TB321FU-GSI-Mods
           path: mods
       - run: sudo apt-get update && sudo apt-get install -y mksh
-      - run: scripts/check.sh
+      # 用 bash 显式调用:脚本在 NAS(cifs)上开发,exec 位存不进 git,直接执行会 126。
+      - run: bash scripts/check.sh
         env:
           MODS_DIR: ${{ github.workspace }}/mods
+          TB321FU_DATA: ${{ github.workspace }}   # 兜底:CI 没有平级数据工程目录,给个存在的路径免得 device.conf 解析失败
           STRICT: "1"
 
   engine:
