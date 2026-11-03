@@ -1,0 +1,120 @@
+herald-core 认证引擎(engine/,对外称 HeraldKeymint)—— 署名与修改声明
+==========================================================================
+
+本目录是修改过的作品(modified work)。以下按 General License Agreement v4
+(engine/LICENSE.md)第 4.2.3.1 节和第 4.4 节的要求说明原作品、原作者和修改情况。
+
+
+一、原作品
+----------
+
+作品名称:Oh My Keymint(OhMyKeymint)
+原作者:  James Clef (qwq233) <qwq233@qwq2333.top>
+原项目:  https://github.com/qwq233/OhMyKeymint
+本目录直接来源(第三方版本):
+          https://github.com/ITxiao6666/OhMyKeymint
+基线提交:bafe5baa62ebdb1765685a4520f3a9db32ca2e3a(短号 bafe5ba,2026-10-23,版本 1.3.5)
+许可:    General License Agreement v4(LICENSE.md)和 Oh My Keymint License(LICENSE-2)
+
+本修改版与原作者、ITxiao6666 第三方版本的维护者均无从属关系,也未获得他们的认可或支持。
+问题请反馈到本仓库,不要反馈给上游。
+
+
+二、修改人和日期
+----------------
+
+修改人:CharlesGool(https://github.com/CharlesGool/herald-core 仓库所有者)
+修改日期:2026-11-01 起(之后的修改见本仓库 git 历史)
+
+
+三、修改了什么
+--------------
+
+1. 改名(2026-11-01)
+   LICENSE-2 第 3 条不允许超出许可范围使用原名称,所以标识全部从
+   omk / OMK / OhMyKeymint / ohmykeymint 改为 herald / HERALD / HeraldKeymint:
+
+   - 运行路径:/data/misc/keystore/omk → /data/misc/keystore/herald,
+     /data/adb/omk → /data/adb/herald,模块 id oh_my_keymint → herald_keymint;
+   - Binder 接口:AIDL 包 top.qwq2333.ohmykeymint → herald.keymint
+     (aidl/top/qwq2333/ohmykeymint/ 移到 aidl/herald/keymint/),
+     接口 IOhMy* → IHerald*,服务名 omk / omk_authorization / omk_maintenance /
+     omk_metrics → herald / herald_*,方法 getOhMySecurityLevel → getHeraldSecurityLevel;
+   - Rust 标识符:omk_ctx、omk_compatibility、omk_keystore_permission、omk_legacy_*、
+     OmkSecurityLevelWrapper、OmkGrant 等改成 herald_* / Herald*;
+   - 环境变量 OMK_* → HERALD_*(如 HERALD_RKP_V1_BRIDGE_JAR、HERALD_SOTER_TEST_SERVICE、
+     HERALD_DB_ROOT、HERALD_INJECTOR_CONFIG_PATH),日志 target omk_* → herald_*,
+     测试临时目录名前缀 omk- → herald-;
+   - 注释和文档里指代本软件的名称。
+
+   涉及的源码文件(与基线 bafe5ba 逐文件比较得到;只列保留下来的源码目录):
+
+   - src/:config.rs、global.rs、keybox.rs、logging.rs、macros.rs、main.rs、
+     rkp_v1_bridge.rs、soter_hal.rs、webui_http.rs、plat/resetprop.rs、plat/vbmeta.rs、
+     keymint/sdd.rs、local_rkp/mod.rs,
+     keymaster/ 下 attestation_key_utils、authorization、boot_key、crypto、db、gc、
+     keymint_device、maintenance、metrics、permission、security_level、service、super_key
+     —— 改名(路径常量、AIDL 包路径、服务名、标识符);
+   - src/local_rkp/ 下 cbor、cose、v1 和 verify/ 各文件 —— 只改了文件头注释里
+     第三方许可文本的位置(template/THIRD_PARTY_LICENSES → licenses/);
+   - injector/:build.rs、src/main.rs、config.rs、identify.rs、inject.rs、ipc.rs、
+     logging.rs、auto_targets.rs、soter_watch.rs、hook/install.rs、hook/soter.rs、
+     hook/intercept/fd.rs、hook/binder/native/service.rs、hook/rewrite/ 下全部模块,
+     以及对应的测试文件(共 35 个源码文件)—— 改名(路径常量、接口名、方法名);
+   - common/:src/rpc.rs、src/vintf.rs、src/runtime/mod.rs、src/runtime/logging.rs
+     —— 改名(socket 路径、服务名、日志 target、注释);
+   - boringssl/:src/km.rs、src/tests.rs —— 改名(omk_legacy_kdf_* → herald_legacy_kdf_*);
+   - soter-ta/:src/bin/soterta-svc.rs、src/bridge.rs、src/remote.rs、src/state.rs
+     —— 改名(状态文件路径、测试服务名、环境变量、日志 target);
+   - pif-common/:src/soter.rs —— 改名(状态文件路径);
+   - aidl/:目录移动和接口改名,见上;
+   - 根目录 build.rs、.cargo/config.example.toml —— 改名(AIDL 路径、环境变量、注释)。
+
+   ta/、wire/、derive/、tests/、watchdog/、runtime/、proto/ 与基线相同。
+
+2. 精简(2026-11 起)
+   herald-core 只用 keymint 和 inject 两个二进制,由 GSI 补丁 attestation-fix 以 init
+   服务的方式拉起,不走 Magisk/KernelSU 模块。所以删掉了只服务于模块模式和其他功能的部分:
+   hal/、pif-spoof/(Zygisk PIF 与腾讯 Soter Beta)、third_party/zygisk-api/、
+   template/(模块模板;代码 include 的文件挪到 assets/)、webui/、build.py、
+   模块打包脚本、update.json、.github/、.cargo-husky/。
+   代码里引用 template/ 的 include_str! 路径相应改成 assets/。
+
+3. 构建方式
+   新增 scripts/build-android.sh、scripts/build-boringssl.sh、rust-toolchain.toml、
+   Cargo.lock;各 Cargo.toml 的 license 字段按实际许可调整。说明见 README.herald.md。
+
+4. 文档
+   新增 README.herald.md、本 NOTICE、LICENSE-AGPL-3.0.txt、licenses/;
+   README.md(上游原文)开头加了说明,docs/ 下改了路径和名称、标注了模块模式专用的章节。
+
+
+四、Apache-2.0 文件的修改声明(Apache License 2.0 第 4(b) 条)
+-------------------------------------------------------------
+
+kmr-* 这几个 crate(boringssl/ = kmr-crypto-boring、common/ = kmr-common、
+derive/ = kmr-derive、ta/ = kmr-ta、wire/ = kmr-wire、tests/ = kmr-tests)以及
+watchdog/ 来自 AOSP,按 Apache License 2.0 授权,全文见 licenses/Apache-2.0.txt。
+下列 Apache-2.0 文件因上面的改名被修改过(2026-11-01,CharlesGool),修改仅限标识符、
+路径常量、日志 target 和注释:
+
+  - boringssl/src/km.rs
+  - boringssl/src/tests.rs
+  - common/src/rpc.rs
+  - common/src/vintf.rs
+  - common/src/runtime/mod.rs
+  - common/src/runtime/logging.rs
+
+其余 Apache-2.0 文件未修改,原有版权和许可声明均保留。
+
+  Copyright 2022, The Android Open Source Project
+
+
+五、其他第三方组件
+------------------
+
+- soter-ta/(soter-ta、soterta-svc):改编自 Andrea-lyz/ommega 和 jiyin004-jpg/ommega,
+  AGPL-3.0-or-later,全文见 LICENSE-AGPL-3.0.txt,来源说明见 licenses/ommega-soter-ta.txt;
+- src/local_rkp/、src/rkp_v1_bridge.rs:改编自 eltavine/Duck-ToolBox 和
+  LazyBonesLZY/rkp-v1-oracle,MIT,见 licenses/Duck-ToolBox.txt、licenses/rkp-v1-oracle.txt;
+- 其他来源说明见 docs/THIRD_PARTY.md。

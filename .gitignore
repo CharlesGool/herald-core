@@ -1,0 +1,7 @@
+dist/
+engine/target/
+engine/.cargo/config.toml
+
+# 本地文件与机密(all-in-one 规范)
+.local/
+.env

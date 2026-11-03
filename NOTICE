@@ -1,0 +1,6 @@
+herald-core 的 broker 协议和插件接口是自研的,以 GPL-3.0-or-later 发布(见 LICENSE)。
+引擎(keymint / inject)在本仓库的 engine/ 目录,它是 Oh My Keymint(原作者 James Clef / qwq233,
+第三方版本 ITxiao6666/OhMyKeymint,基线提交 bafe5ba)的修改版,不属于 GPL 部分。
+engine/ 的署名和修改声明见 engine/NOTICE,许可见 engine/LICENSE.md(GLA v4)、engine/LICENSE-2,
+其中 soter-ta 为 AGPL-3.0-or-later(engine/LICENSE-AGPL-3.0.txt),kmr-* crate 为 Apache-2.0
+(engine/licenses/Apache-2.0.txt)。

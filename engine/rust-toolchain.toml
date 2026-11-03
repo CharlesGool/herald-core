@@ -1,0 +1,6 @@
+# Pinned to the toolchain that built the keymint/inject binaries in use.
+# nightly-2026-11-01 = rustc 1.101.0-nightly (f9ceb4a4d 2026-10-31), checked on the build host.
+[toolchain]
+channel = "nightly-2026-11-01"
+profile = "minimal"
+targets = ["aarch64-linux-android"]

@@ -1,0 +1,16 @@
+{
+  "skillOverrides": {
+    "golang-code-style": "on",
+    "golang-concurrency": "on",
+    "golang-error-handling": "on",
+    "golang-security": "on",
+    "golang-testing": "on",
+    "modern-python": "on",
+    "playwright-cli": "on",
+    "supply-chain-risk-auditor": "on"
+  },
+  "enabledPlugins": {
+    "insecure-defaults@trailofbits": true,
+    "superpowers@claude-plugins-official": true
+  }
+}

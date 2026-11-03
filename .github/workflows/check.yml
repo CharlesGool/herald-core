@@ -1,0 +1,21 @@
+# 脚本语法 + TB321FU-GSI-Mods 的 herald 协议回归测试(scripts/check.sh)。
+# 开机前缀/完整开机两个测试要私有 payload 的 seed,CI 里没有,会跳过;本机 make check 会跑。
+# 引擎(keymint/inject)要 NDK + BoringSSL,在装好工具链的 Linux 构建主机上用 make engine 编,不在这里。
+name: check
+on:
+  push:
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: CharlesGool/TB321FU-GSI-Mods
+          path: mods
+      - run: sudo apt-get update && sudo apt-get install -y mksh
+      - run: scripts/check.sh
+        env:
+          MODS_DIR: ${{ github.workspace }}/mods
+          STRICT: "1"
