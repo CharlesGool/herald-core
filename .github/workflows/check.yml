@@ -1,6 +1,8 @@
-# 脚本语法 + TB321FU-GSI-Mods 的 herald 协议回归测试(scripts/check.sh)。
-# 开机前缀/完整开机两个测试要私有 payload 的 seed,CI 里没有,会跳过;本机 make check 会跑。
-# 引擎(keymint/inject)要 NDK + BoringSSL,在装好工具链的 Linux 构建主机上用 make engine 编,不在这里。
+# check 任务:
+# - check:脚本语法 + TB321FU-GSI-Mods 的 herald 协议回归测试(scripts/check.sh)。
+#   开机前缀/完整开机两个测试要私有 payload 的 seed,CI 里没有,会跳过;本机 make check 会跑。
+# - engine:引擎里不依赖 BoringSSL/NDK 的纯逻辑 crate 的单元测试。
+#   根 crate 和 kmr-tests 链接 BoringSSL(android 交叉编译),完整 make engine 仍在构建主机上做,不在这里。
 name: check
 on:
   push:
@@ -19,3 +21,12 @@ jobs:
         env:
           MODS_DIR: ${{ github.workspace }}/mods
           STRICT: "1"
+
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # rust-toolchain.toml 固定了 nightly 版本,rustup 首次调用 cargo 时自动安装。
+      - name: 引擎纯逻辑单元测试(不依赖 BoringSSL/NDK 的 crate)
+        working-directory: engine
+        run: cargo test -p kmr-common -p kmr-wire -p kmr-derive -p kmr-ta -p watchdog_rs
