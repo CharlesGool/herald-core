@@ -1,5 +1,7 @@
 # herald-core
 
+[English](docs/en/README.md) · [Español](docs/es/README.md) · 简体中文
+
 免 root 核心:一个跑在独立 SELinux 域里的 broker、命令行 `heraldctl` 和插件接口,其他补丁按接口接入。
 **产物是 GSI 补丁 `herald-core`**(`make dist` → `dist/herald-core/`),用在 TB321FU-GSI-Mods 里。
 
