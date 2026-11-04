@@ -1,6 +1,8 @@
 # 注入器能力化设计(草案)
 
-> 状态:**已评审通过,实施中**。**P1a 完整**(install 阶段接缝 + binder 热路径分发 → `Interceptor` trait,keystore 作第一个实现)已完成并在 ubt-dev 编译通过、行为保持;operation-publication / pending 帧 / 合成节点 retire 等机器按计划留在核心。**P1a 真机回归通过**(test-v1.3.3:selftest 全绿、`keybox state` = tee·google_remote、各命令正常、reboot 后正常开机;Play Integrity 检测器建议再单独确认持久)。P1b(SOTER 作第二实现)**取消**:SOTER 本机(TB321FU)未启用,已于 2026-11-04 整体删除(injector / keymint / soter-ta / pif-common 的 soter 代码全部移除),无第二实现可抽;trait 边界对"改写型扩展"已由 keystore 确认够用;P2(应用列表隐藏)按需推进。
+> 状态:**已评审通过,实施中**。**P1a 完整**(install 阶段接缝 + binder 热路径分发 → `Interceptor` trait,keystore 作第一个实现)已完成并在 ubt-dev 编译通过、行为保持;operation-publication / pending 帧 / 合成节点 retire 等机器按计划留在核心。**P1a 真机回归通过**(test-v1.3.3:selftest 全绿、`keybox state` = tee·google_remote、各命令正常、reboot 后正常开机;Play Integrity 检测器建议再单独确认持久)。P1b(SOTER 作第二实现)**取消**:SOTER 本机(TB321FU)未启用,已于 2026-11-04 整体删除(injector / keymint / soter-ta / pif-common 的 soter 代码全部移除),无第二实现可抽;trait 边界对"改写型扩展"已由 keystore 确认够用。
+>
+> **P2(应用列表隐藏,拦 system_server IPackageManager)=经真机 de-risk 后搁置(2026-11-04)。** 做了 P2.0:加 `inject --target system_server` + 按进程名选扩展 + 纯透传 `PkgManagerInterceptor` + 门控一次性启动器,真机验证**注入 system_server 失败 rc=1**。根因(读 attestation-fix 的 sepolicy 即确认,非猜测):keystore2 注入能成是因为 attestation-fix **显式放行** `(allow keystore herald_exec (file (... execute map ...)))` 让 enforcing 的 keystore 域能 dlopen 注入体;**system_server 同是 enforcing 域,没有、也不应有这个放行**——ptrace attach(herald permissive)过得去,但目标 dlopen/execute `herald_exec` payload 被 SELinux 拒。给 system_server 加等价放行:大概率撞 AOSP neverallow(编不过/开不了机),且严重削弱最特权进程、可被检测。**结论:原生注入 system_server 不是正路;隐藏应用列表应走 `services.jar`(构建期改 PackageManagerService,system_server 用自身合法代码过滤),不注入、不碰 SELinux。** P2.0 实验代码(`--target` 选择、`hook/pkgmgr_ext.rs` 透传、门控启动器、结果标记)默认关、keystore 路径逐字节不变、无害,**保留作记录**(commit 9619554 起)。P2.1/P2.2 不再推进。
 
 把 native 注入层从"单体的 keybox 认证引擎"重构成「**能力基座 + 扩展**」:基座只提供"坐进系统服务、拦改其 binder 事务"的无偏好能力,keybox/认证作为**第一个扩展**接进来。与 broker(shell)层已有的"核心 + 插件接口"同构。
 
