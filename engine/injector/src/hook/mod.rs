@@ -7,9 +7,11 @@ pub(crate) mod binder;
 mod install;
 mod intercept;
 mod keystore_ext;
+mod pkgmgr_ext;
 pub(crate) mod rewrite;
 
 pub(crate) use keystore_ext::keystore_interceptor;
+pub(crate) use pkgmgr_ext::pkgmgr_interceptor;
 
 static OLD_IOCTL: AtomicPtr<c_void> = AtomicPtr::new(std::ptr::null_mut());
 static OLD_CLOSE: AtomicPtr<c_void> = AtomicPtr::new(std::ptr::null_mut());

@@ -255,23 +255,36 @@ fn main() {
         }
     }
 
-    let (pid, target_path) = match utils::find_process_by_name("keystore2") {
+    // 目标进程选择:无参默认 keystore2(认证注入,行为不变);
+    // `--target system_server` 注入 system_server(P2 应用列表隐藏)。
+    let target_name = match std::env::args().nth(1).as_deref() {
+        Some("--target") => match std::env::args().nth(2).as_deref() {
+            Some("keystore2") => "keystore2",
+            Some("system_server") => "system_server",
+            other => {
+                eprintln!("--target expects keystore2 or system_server, got {other:?}");
+                std::process::exit(2);
+            }
+        },
+        _ => "keystore2",
+    };
+    let (pid, target_path) = match utils::find_process_by_name(target_name) {
         Ok(target) => target,
         Err(error) => {
-            warn!("event=target_not_ready process=keystore2 error={error:#}; daemon will retry");
+            warn!("event=target_not_ready process={target_name} error={error:#}; daemon will retry");
             std::process::exit(1);
         }
     };
     match utils::executable_identity(&target_path) {
         Ok(identity) => info!(
-            "keystore2 target pid={} exe={} sha256={} elf={}",
+            "{target_name} target pid={} exe={} sha256={} elf={}",
             pid,
             identity.path.display(),
             identity.sha256,
             identity.elf,
         ),
         Err(error) => error!(
-            "failed to describe keystore2 executable {}: {:#}",
+            "failed to describe {target_name} executable {}: {:#}",
             target_path.display(),
             error
         ),
@@ -311,12 +324,22 @@ pub extern "C" fn entry(handle: *const c_void) -> bool {
             .map(|path| path.display().to_string())
             .unwrap_or_else(|_| "<unknown>".to_string()),
     );
-    if let Err(error) = ipc::install_direct_rpc_session() {
-        error!("failed to initialize HERALD RPC session: {error:#}");
-        return false;
-    }
-    // 注册 keystore 认证扩展;core 的 install 阶段会回调它(见 intercept_api、docs/injector-capability-design.md)。
-    intercept_api::register(hook::keystore_interceptor());
+    // 按被注入进程选扩展:载荷在目标进程里重新 dlopen,拿不到 launcher 的参数,
+    // 只能从自身进程名判定。system_server = 应用列表隐藏(P2),其余 = keystore 认证。
+    let self_name = utils::process_name(std::process::id() as i32).unwrap_or_default();
+    let interceptor = if self_name == "system_server" {
+        // 应用列表隐藏不连 keymint 后端,不建 HERALD RPC 会话(建了反而可能失败/阻塞)。
+        hook::pkgmgr_interceptor()
+    } else {
+        // keystore 认证扩展要经 HERALD RPC 会话连 keymint 后端。
+        if let Err(error) = ipc::install_direct_rpc_session() {
+            error!("failed to initialize HERALD RPC session: {error:#}");
+            return false;
+        }
+        hook::keystore_interceptor()
+    };
+    // core 的 install 阶段会回调注册的扩展(见 intercept_api、docs/injector-capability-design.md)。
+    intercept_api::register(interceptor);
     if let Err(error) = hook::init_hook() {
         error!("failed to initialize binder ioctl hook: {error:#}");
         return false;
