@@ -1,6 +1,6 @@
 # 注入器能力化设计(草案)
 
-> 状态:**已评审通过,实施中**。**P1a 完整**(install 阶段接缝 + binder 热路径分发 → `Interceptor` trait,keystore 作第一个实现)已完成并在 ubt-dev 编译通过、行为保持;operation-publication / pending 帧 / 合成节点 retire 等机器按计划留在核心。**待真机三绿验证**(test-v1.3.3)。P1b(SOTER 作第二实现)、P2(应用列表隐藏)按需推进。
+> 状态:**已评审通过,实施中**。**P1a 完整**(install 阶段接缝 + binder 热路径分发 → `Interceptor` trait,keystore 作第一个实现)已完成并在 ubt-dev 编译通过、行为保持;operation-publication / pending 帧 / 合成节点 retire 等机器按计划留在核心。**P1a 真机回归通过**(test-v1.3.3:selftest 全绿、`keybox state` = tee·google_remote、各命令正常、reboot 后正常开机;Play Integrity 检测器建议再单独确认持久)。P1b(SOTER 作第二实现)、P2(应用列表隐藏)按需推进。
 
 把 native 注入层从"单体的 keybox 认证引擎"重构成「**能力基座 + 扩展**」:基座只提供"坐进系统服务、拦改其 binder 事务"的无偏好能力,keybox/认证作为**第一个扩展**接进来。与 broker(shell)层已有的"核心 + 插件接口"同构。
 
