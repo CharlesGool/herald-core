@@ -10,6 +10,9 @@
 
 use std::sync::OnceLock;
 
+use crate::hook::binder::binder_transaction_data;
+use crate::hook::BinderStateKey;
+
 /// 一个注入扩展。核心在固定的生命周期点回调它。
 pub trait Interceptor: Sync {
     /// PLT 挂钩**安装之前**的一次性准备(进程态、注册服务身份等)。
@@ -19,6 +22,35 @@ pub trait Interceptor: Sync {
     /// PLT 挂钩**提交之后**拉起扩展自己的后台 worker。
     fn after_hooks(&self) -> anyhow::Result<()> {
         Ok(())
+    }
+
+    /// 入站 binder 事务分发。返回 `true`=已改写(核心需装 shadow),`false`=透传。
+    /// 未注册扩展时核心按默认透传(`false`)。
+    ///
+    /// # Safety
+    /// `tr` 必须指向当前事务的有效 `binder_transaction_data`。
+    unsafe fn on_incoming_transaction(
+        &self,
+        connection: BinderStateKey,
+        tr: &mut binder_transaction_data,
+        caller_sid: Option<String>,
+        command_name: &str,
+    ) -> bool {
+        let _ = (connection, tr, caller_sid, command_name);
+        false
+    }
+
+    /// 出站 `BC_REPLY` 分发。返回改写的帧 id,或 `None`。
+    ///
+    /// # Safety
+    /// 同 [`Interceptor::on_incoming_transaction`]。
+    unsafe fn on_outgoing_reply(
+        &self,
+        connection: BinderStateKey,
+        tr: &mut binder_transaction_data,
+    ) -> Option<u64> {
+        let _ = (connection, tr);
+        None
     }
 }
 

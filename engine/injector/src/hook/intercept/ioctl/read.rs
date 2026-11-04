@@ -166,18 +166,14 @@ unsafe fn handle_incoming_transaction(
     caller_sid: Option<String>,
     label: &str,
 ) -> bool {
-    let target = LocalBinderTarget {
-        ptr: tr.target.ptr,
-        cookie: tr.cookie,
-    };
-    if lookup_synthetic_target(target).is_some() {
-        if (tr.flags & TF_ONE_WAY) == 0 {
-            push_pending_frame(binder_state_key(fd));
+    // 入站事务分发交给注册的扩展(keystore 的合成检查/压帧/改写都在其 on_incoming_transaction 内);
+    // 未注册则透传。
+    match crate::intercept_api::get() {
+        Some(interceptor) => {
+            interceptor.on_incoming_transaction(binder_state_key(fd), tr, caller_sid, label)
         }
-        return false;
+        None => false,
     }
-
-    handle_br_transaction(binder_state_key(fd), tr, caller_sid, label)
 }
 pub(in crate::hook::intercept) fn record_transaction_completion(
     fd: c_int,

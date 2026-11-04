@@ -259,7 +259,9 @@ pub(super) unsafe fn parse_write_buffer(
                             _ => unreachable!(),
                         };
                         let frame_id = if is_reply && prepared.is_none() && inspectable {
-                            Some(handle_bc_reply(binder_state_key(fd), &mut tr))
+                            Some(crate::intercept_api::get().and_then(|interceptor| unsafe {
+                                interceptor.on_outgoing_reply(binder_state_key(fd), &mut tr)
+                            }))
                         } else {
                             None
                         };
