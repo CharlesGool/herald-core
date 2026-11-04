@@ -18,7 +18,7 @@ Documentación: [Diseño](DESIGN.md) · [Interfaz de plugins](../plugin-api.md) 
 | `engine/src/` | Demonio keymint (implementación de KeyMint que sustituye al backend keystore2, keybox, RKP local) |
 | `engine/injector/` | Inyector inject (inyección ptrace en keystore2, enruta las solicitudes por App) |
 | `engine/common/`、`boringssl/`、`ta/`、`wire/`、`derive/`、`watchdog/`、`tests/` | Bibliotecas base como los crates kmr-* de AOSP KeyMint |
-| `engine/soter-ta/`、`pif-common/` | TA de software Soter de Qualcomm (adaptado de ommega) y definiciones Soter compartidas |
+| `engine/pif-common/` | Definiciones compartidas de perfiles PIF |
 | `engine/aidl/`、`proto/`、`runtime/`、`assets/` | Interfaces AIDL, protobuf, la parte Java del puente RKP V1 y los recursos compilados en el binario |
 | `engine/scripts/` | `build-android.sh` (llamado por `make engine`), `build-boringssl.sh` (compila BoringSSL con una versión fija) |
 | `engine/docs/` | Documentación upstream (configuración, FAQ, fuentes de terceros); las secciones exclusivas del modo módulo están marcadas |
@@ -61,7 +61,6 @@ Este repositorio tiene varias licencias que coexisten, cada una para su parte, s
 |---|---|---|---|
 | `patch/`、`docs/`、archivos del directorio raíz (el núcleo en sí) | GNU GPL v3.0 o posterior | `GPL-3.0-or-later` | `LICENSE` |
 | Cuerpo principal de `engine/` (versión modificada de Oh My Keymint) | General License Agreement v4 + Oh My Keymint License (**solo uso no comercial**; la versión modificada debe incluir una declaración de cambios y no puede usar el nombre original) | — | `engine/LICENSE.md`、`engine/LICENSE-2` |
-| `engine/soter-ta/` (adaptado de ommega) | GNU AGPL v3.0 o posterior | `AGPL-3.0-or-later` | `engine/LICENSE-AGPL-3.0.txt` |
 | Crates kmr-* bajo `engine/` (de AOSP) | Apache License 2.0 | `Apache-2.0` | `engine/licenses/Apache-2.0.txt` |
 | Código RKP local bajo `engine/` adaptado de Duck-ToolBox / rkp-v1-oracle | MIT | `MIT` | `engine/licenses/` |
 

@@ -33,11 +33,6 @@ impl ParcelExt for rsbinder::Parcel {
     }
 }
 
-pub(crate) fn refresh_soter_host() -> Result<()> {
-    stop_processes_matching(|name| name == b"com.tencent.soter.soterserver")
-        .context("Soter settings were saved, but SoterServer could not be refreshed; restart the service before using the new mode")
-}
-
 /// Stop matching Android processes without setting the package's force-stop
 /// flag. Android may rebind services normally with their updated configuration.
 pub(crate) fn stop_processes_matching(matches: impl Fn(&[u8]) -> bool) -> Result<()> {

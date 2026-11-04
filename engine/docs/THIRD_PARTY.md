@@ -1,6 +1,6 @@
 # Third-Party Software
 
-> **herald 说明**:本页按上游原文保留第三方来源说明。文中的 "Oh My Keymint" 指做这些改编的上游项目;"HeraldKeymint" 指本仓库的 engine/。herald-core 精简时删掉了 `webui/`、`pif-spoof/`、`third_party/zygisk-api/`、`template/` 等目录,对应条目已标注"已从本仓库移除",保留条目只为说明来源。各许可全文:AGPL-3.0 见 [`LICENSE-AGPL-3.0.txt`](../LICENSE-AGPL-3.0.txt),Apache-2.0 和 MIT 见 [`licenses/`](../licenses/);修改声明见 [`NOTICE`](../NOTICE)。
+> **herald 说明**:本页按上游原文保留第三方来源说明。文中的 "Oh My Keymint" 指做这些改编的上游项目;"HeraldKeymint" 指本仓库的 engine/。herald-core 精简时删掉了 `webui/`、`pif-spoof/`、`third_party/zygisk-api/`、`template/` 等目录,对应条目已标注"已从本仓库移除",保留条目只为说明来源。Soter 相关组件(`soter-ta/` 等)已于 2026-11-04 删除,对应的 AGPL-3.0 许可文本也已移除。各许可全文:Apache-2.0 和 MIT 见 [`licenses/`](../licenses/);修改声明见 [`NOTICE`](../NOTICE)。
 
 ## miuix-vue WebUI components
 
@@ -142,6 +142,8 @@ The release includes this attribution in `THIRD_PARTY_LICENSES/D-soter.txt` and
 the Apache-2.0 terms in `AOSP.Apache-license-2.0.txt`.
 
 ## Qualcomm Soter software TA
+
+> **已从本仓库移除(2026-11-04)。** `soter-ta/`(soter-ta、soterta-svc)、keymint 的 `soter_hal.rs`/`soter_beta.rs`、injector 的 `hook/soter.rs`/`soter_watch.rs` 和 `pif-common/src/soter.rs`/`soter_blob.rs` 均已删除;目标机 TB321FU 不启用 Soter。随之移除了只因 soter-ta 引入的 AGPL-3.0-or-later,`LICENSE-AGPL-3.0.txt`、`licenses/ommega-soter-ta.txt` 不再随本仓库提供。下文按上游原文保留,仅说明来源。
 
 The Qualcomm Soter HAL software TA and Binder service are adapted from the
 `soter-ta` and `soterta-svc` components of

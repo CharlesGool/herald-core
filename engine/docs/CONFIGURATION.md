@@ -119,7 +119,7 @@ validation and upgrade rules for existing keys.
 
 > **模块模式专用,herald 不适用。** (Module mode only; does not apply to herald-core, which starts the engine from init and has no Magisk/KernelSU module or WebUI.)
 >
-> 本节中 PIF 指纹和腾讯 Soter 兼容(Beta)的部分依赖 `pif-spoof/`,该组件已从本仓库移除;`OhMyKeymint-Soter` 等日志标签和测试常量属于已移除的组件,保留原文。
+> 本节中 PIF 指纹和腾讯 / 高通 Soter 兼容的部分依赖 `pif-spoof/` 或 `soter-ta/`,这些组件已从本仓库移除(Soter 全部实现于 2026-11-04 删除);`OhMyKeymint-Soter` 等日志标签和测试常量属于已移除的组件,保留原文。
 
 The module includes a WebUI for selecting packages in `scoop`, installing a
 local keybox, managing global Android security patch levels, applying a Pixel

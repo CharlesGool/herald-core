@@ -14,11 +14,10 @@
 | 部分 | 许可 | 全文 |
 |---|---|---|
 | 引擎主体(原作者拥有著作权的部分) | General License Agreement v4 + Oh My Keymint License(**仅限非商业使用**,修改版须附修改声明、不得使用原名) | [`LICENSE.md`](LICENSE.md)、[`LICENSE-2`](LICENSE-2) |
-| `soter-ta/`(改编自 ommega) | AGPL-3.0-or-later | [`LICENSE-AGPL-3.0.txt`](LICENSE-AGPL-3.0.txt) |
 | kmr-* crate(`boringssl/`、`common/`、`derive/`、`ta/`、`wire/`、`tests/`)和 `watchdog/`,来自 AOSP | Apache-2.0 | [`licenses/Apache-2.0.txt`](licenses/Apache-2.0.txt) |
 | `src/local_rkp/` 等改编自 Duck-ToolBox / rkp-v1-oracle 的部分 | MIT | [`licenses/`](licenses/) |
 
-注意:上游 `README.md` 的"许可与致谢"一节写的是"同意 [AGPL-3.0-or-later](LICENSE.md)",但 `LICENSE.md` 实际是 GLA v4,不是 AGPL。实际情况以上表为准;AGPL 全文是另外放的 `LICENSE-AGPL-3.0.txt`。
+注意:上游 `README.md` 的"许可与致谢"一节写的是"同意 [AGPL-3.0-or-later](LICENSE.md)",但 `LICENSE.md` 实际是 GLA v4,不是 AGPL。实际情况以上表为准:引擎主体按 GLA v4 + Oh My Keymint License(仅限非商业)。
 
 ## 构建
 

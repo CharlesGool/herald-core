@@ -73,7 +73,6 @@ members = [
   "watchdog",
   "injector",
   "pif-common",
-  "soter-ta",
 ]
 
 [patch.crates-io]

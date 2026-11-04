@@ -691,9 +691,9 @@ If a maintainer needs information above, share it with proper measures.
 ### Is commercial use allowed?
 
 No. The engine is licensed under the [General License Agreement v4](../LICENSE.md)
-together with the [Oh My Keymint License](../LICENSE-2); `soter-ta/` is
-AGPL-3.0-or-later ([full text](../LICENSE-AGPL-3.0.txt)) and the kmr-* crates are
-Apache-2.0. See [README.herald.md](../README.herald.md) and [NOTICE](../NOTICE). Both
+together with the [Oh My Keymint License](../LICENSE-2), and the kmr-* crates are
+Apache-2.0. (The Soter components and their AGPL-3.0-or-later license were removed
+on 2026-11-04.) See [README.herald.md](../README.herald.md) and [NOTICE](../NOTICE). Both
 the GLA v4 and the Oh My Keymint License prohibit commercial use and contain
 other conditions. Read them before using
 or distributing HeraldKeymint.

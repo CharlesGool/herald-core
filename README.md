@@ -18,7 +18,7 @@
 | `engine/src/` | keymint 守护(替代 keystore2 后端的 KeyMint 实现、keybox、本地 RKP) |
 | `engine/injector/` | inject 注入器(ptrace 注入 keystore2,按 App 路由请求) |
 | `engine/common/`、`boringssl/`、`ta/`、`wire/`、`derive/`、`watchdog/`、`tests/` | AOSP KeyMint 的 kmr-* crate 等基础库 |
-| `engine/soter-ta/`、`pif-common/` | 高通 Soter 软件 TA(改编自 ommega)和共用的 Soter 定义 |
+| `engine/pif-common/` | PIF 指纹档案的共用定义 |
 | `engine/aidl/`、`proto/`、`runtime/`、`assets/` | AIDL 接口、protobuf、RKP V1 bridge 的 Java 部分、编进二进制的资源文件 |
 | `engine/scripts/` | `build-android.sh`(`make engine` 调用)、`build-boringssl.sh`(按固定版本编 BoringSSL) |
 | `engine/docs/` | 上游文档(配置说明、FAQ、第三方来源);模块模式专用的章节已标注 |
@@ -61,7 +61,6 @@ make engine    # 交叉编译认证引擎 keymint、inject(需工具链)
 |---|---|---|---|
 | `patch/`、`docs/`、根目录文件(核心本身) | GNU GPL v3.0 或更新 | `GPL-3.0-or-later` | `LICENSE` |
 | `engine/` 主体(Oh My Keymint 的修改版) | General License Agreement v4 + Oh My Keymint License(**仅限非商业使用**;修改版须附修改声明、不得使用原名) | — | `engine/LICENSE.md`、`engine/LICENSE-2` |
-| `engine/soter-ta/`(改编自 ommega) | GNU AGPL v3.0 或更新 | `AGPL-3.0-or-later` | `engine/LICENSE-AGPL-3.0.txt` |
 | `engine/` 下的 kmr-* crate(来自 AOSP) | Apache License 2.0 | `Apache-2.0` | `engine/licenses/Apache-2.0.txt` |
 | `engine/` 里改编自 Duck-ToolBox / rkp-v1-oracle 的本地 RKP 代码 | MIT | `MIT` | `engine/licenses/` |
 
