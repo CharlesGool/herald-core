@@ -20,6 +20,8 @@ None at present.
 |---|---|---|---|
 | 2026-11-01 | Renamed omk→herald across the whole engine | Accepted | Clause 3 of the Oh My Keymint License does not allow the original name to be used beyond its permitted scope |
 | 2026-11-04 | Broker working directory stays in `/data/local/tmp` | Accepted | Moving it to `/data/adb` makes responses unreadable due to SELinux labels (V1.2 real-device regression) |
+| 2026-11-04 | Removed SOTER and dropped the AGPL that came with it | Accepted | TB321FU does not enable SOTER; AGPL was only introduced by ommega's soter-ta, so it was removed together |
+| 2026-11-04 | App-list hiding does not go through injection into system_server | Accepted | system_server (enforcing) cannot load the herald_exec injection body; letting it through would hit neverallow and weaken security. Moved to services.jar (confirmed by real-device de-risking) |
 
 ## Handoff
 

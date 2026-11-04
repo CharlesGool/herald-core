@@ -2,6 +2,22 @@
 
 [English](en/CHANGELOG.md) · [Español](es/CHANGELOG.md) · 简体中文
 
+## V1.5 — 2026-11-04
+
+### 移除
+- 删除 SOTER(高通/腾讯)全部实现:injector `hook/soter.rs`/`soter_watch.rs`、keymint `soter_beta.rs`/`soter_hal.rs`、`soter-ta` crate、pif-common `soter.rs`/`soter_blob.rs`(TB321FU 不启用)。
+- 去掉随之的 AGPL-3.0:AGPL 只因 ommega 的 soter-ta 引入,删 `engine/LICENSE-AGPL-3.0.txt`、`licenses/ommega-soter-ta.txt`,NOTICE/THIRD_PARTY_NOTICES/README 相应更新。
+
+### 修复
+- resetprop 对已删 `--soter-watch` 的悬空调用:原会每 60 秒重新注入 keystore2(删 SOTER 后暴露的 HIGH 缺陷)。
+
+### 变更
+- 注入器加 `inject --target keystore2|system_server` 目标选择,`entry` 按进程名选扩展;keystore 认证路径逐字节不变,HERALD RPC 会话只在 keystore 分支建立。
+- 新增透传的 `PkgManagerInterceptor`(P2.0,默认不触发),为应用列表隐藏做底层验证。
+
+### 评审
+- P2(注入 system_server 拦 `IPackageManager` 隐藏应用列表)经真机 de-risk 被 SELinux 堵死(system_server enforcing 无法加载 `herald_exec` 注入体,放行会撞 neverallow/削弱安全),**搁置**;改走 `services.jar`。详见 `docs/injector-capability-design.md`。
+
 ## V1.4 — 2026-11-04
 
 ### 新增

@@ -2,6 +2,22 @@
 
 English · [Español](../es/CHANGELOG.md) · [简体中文](../CHANGELOG.md)
 
+## V1.5 — 2026-11-04
+
+### Removed
+- Removed all SOTER (Qualcomm/Tencent) implementations: injector `hook/soter.rs` and `soter_watch.rs`, keymint `soter_beta.rs` and `soter_hal.rs`, the `soter-ta` crate, and pif-common `soter.rs` and `soter_blob.rs` (not enabled on TB321FU).
+- Dropped the AGPL-3.0 that came with it: AGPL was only introduced by ommega's soter-ta. Deleted `engine/LICENSE-AGPL-3.0.txt` and `licenses/ommega-soter-ta.txt`, and updated NOTICE, THIRD_PARTY_NOTICES and README accordingly.
+
+### Fixed
+- resetprop's dangling call to the removed `--soter-watch`: it would re-inject keystore2 every 60 seconds (a HIGH defect exposed by removing SOTER).
+
+### Changed
+- The injector gains `inject --target keystore2|system_server` target selection, and `entry` picks its extension by process name. The keystore authentication path is byte-for-byte unchanged, and the HERALD RPC session is only established in the keystore branch.
+- Added a pass-through `PkgManagerInterceptor` (P2.0, not triggered by default) as low-level validation for app-list hiding.
+
+### Review
+- P2 (injecting into system_server to intercept `IPackageManager` for app-list hiding) was blocked by SELinux after real-device de-risking: with system_server enforcing, it cannot load the `herald_exec` injection body, and letting it through would hit neverallow and weaken security. It is **shelved**; app-list hiding moves to `services.jar`. See `docs/injector-capability-design.md`.
+
 ## V1.4 — 2026-11-04
 
 ### Added
