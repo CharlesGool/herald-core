@@ -779,7 +779,6 @@ fn helper_loop(stream: UnixStream, command: Option<ResetpropCommand>) -> Result<
 // The child binds its lifetime to this helper and is retried after an exit.
 fn start_auto_targets_monitor() {
     start_injector_monitor("--auto-targets-watch", "herald-app-monitor");
-    start_injector_monitor("--soter-watch", "herald-soter-monitor");
 }
 
 fn start_injector_monitor(command: &'static str, name: &'static str) {

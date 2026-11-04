@@ -8,7 +8,6 @@ mod install;
 mod intercept;
 mod keystore_ext;
 pub(crate) mod rewrite;
-pub(crate) mod soter;
 
 pub(crate) use keystore_ext::keystore_interceptor;
 
@@ -35,11 +34,7 @@ pub(super) type BinderStateKey = u64;
 /// Called by the installed ioctl hook with the same ABI and pointer validity
 /// requirements as libc ioctl. `arg` must be valid for the request being made.
 pub unsafe extern "C" fn new_ioctl(fd: c_int, request: c_int, arg: *mut c_void) -> c_int {
-    if soter::enabled() {
-        soter::ioctl(fd, request, arg)
-    } else {
-        intercept::new_ioctl(fd, request, arg)
-    }
+    intercept::new_ioctl(fd, request, arg)
 }
 
 /// # Safety

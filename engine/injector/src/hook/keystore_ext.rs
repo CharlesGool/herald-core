@@ -1,7 +1,7 @@
 //! keystore 认证扩展接入核心的 [`Interceptor`] 实现。
 //!
 //! P1a 只实现安装阶段的接缝:各方法只**转调现有函数**,逻辑与改前逐字节一致
-//! (对照 `install.rs` 改前的 `if !soter { … }` 四处调用)。
+//! (各方法只转调现有函数,逻辑与改前一致)。
 
 use super::binder::binder_transaction_data;
 use super::BinderStateKey;
