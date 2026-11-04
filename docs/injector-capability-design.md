@@ -68,7 +68,7 @@ trait Interceptor {
 1. 抽出基座(把 `inject`/`hook/intercept`/`parcel` 与 `identify`/`hook/rewrite` 切开),定义 `Interceptor` trait + 注册表;
 2. 把 keystore 认证改造成实现该 trait 的**扩展 #1**,其余逻辑原样搬进去;
 3. 证明认证行为不变(离线对拍 + **真机三绿**);
-4. 之后再按同契约加第二个扩展(如按 App 断网/应用列表隐藏)验证契约够用。
+4. 之后按同契约加**第二个扩展:应用列表隐藏**(拦 system_server 的 `IPackageManager`),验证契约能否从 keystore2 迈到 system_server。
 
 ## 风险与约束
 
@@ -77,8 +77,14 @@ trait Interceptor {
 - **脆**:强依赖具体 AIDL + 版本。
 - **许可**:`engine/` 属 Oh My Keymint 的 fork,**GLA v4 + Oh My Keymint License —— 仅非商业、改须附修改声明、不得用原名**。本重构属"修改"。
 
+## 评审决定
+
+| 问题 | 决定 | 原因 |
+|---|---|---|
+| parcel 原语粒度:字段级 vs 整条 parcel | **字段级 + 游标**(按偏移按类型读写、定位替换具体字段),不做整条 parcel 的完整 AIDL 反序列化 | 现有 rewrite 本就是外科式改特定字段;整条重建既脆又随版本漂,收益低 |
+| 声明式 config | **暂不做,全走 Rust** | 唯一现存扩展(keybox 认证)远超配置能表达;没有具体的简单用例就造 DSL 属投机。等真出现简单扩展再回头看 |
+| 第二个扩展选谁验证契约 | **应用列表隐藏**(拦 `IPackageManager` 的包查询、过滤返回项) | 是干净的"改应答"用例、非认证、不破坏性,正好填你现在走 services.jar 没做成的需求。**注意**:它在 system_server 里,P2 真正要验证的就是"框架能否从 keystore2 迈到 system_server 注入"——这也是它的风险点 |
+
 ## 待决问题
 
-- 基座与扩展之间的 parcel 原语抽象到什么粒度(字段级 vs 整条 parcel)?
-- 声明式 config 是否值得做,还是全走 Rust?
-- 第二个扩展选哪个来验证契约(按 App 断网 / 应用列表隐藏)?
+- 以上决定若有异议请指出;否则据此把本草案结论并入 [DESIGN.md](DESIGN.md) 后开工。
