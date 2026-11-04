@@ -1,112 +1,82 @@
-# herald 安全加固 + 轮询优化 真机测试
+# herald P2.0 真机测试:注入 system_server 的可行性(应用列表隐藏第一步)
 
-这次刷的包改了两处,目标都是**不改变正常使用**,所以重点是"别回归",外加几项能直接观察的新行为。
-- broker(herald-start.sh / heraldctl):自适应轮询(更快)、日志移到 root 私有目录(`/data/adb/herald`)、
-  写回包/写配对 token 加 O_EXCL、Settings 键名校验、heraldctl log 改成经 broker 读。
-  工作目录 `.work` 仍留在命令行通道(`/data/local/tmp/herald/.work`,root 0700)——回包要带 shell 标签,heraldctl 才读得到(V1.2 曾误移到 /data/adb 导致回包全空,V1.3 已移回)。
-- engine(keymint / inject):未知 Android 版本不再 panic、keymint.dat 原子写、
-  keybox 解析失败不再覆盖磁盘文件。
+这轮**只验一件事**:把注入器坐进 `system_server`、挂上 binder hook 之后,**系统还能不能正常跑、三绿会不会受影响**。还没有任何过滤逻辑(P2.0 的扩展是**纯透传**,每个事务原样放行)。过滤 app 列表是下一步 P2.1。
 
-环境:Windows cmd,adb 已连上(`adb shell echo ok` 有输出)。命令不要用管道;要存日志就用 `> 文件名`。
+**安全设计(重要)**:system_server 注入**默认关**,靠一次性标志触发;脚本开机时见到标志会**先删掉再注入**——所以即便这次把 system_server 搞崩重启,下次开机已无标志、不再注入,**自动恢复,不会 bootloop**。注入失败也**绝不 kill system_server**。
+
+环境:Windows cmd / PowerShell,adb 已连上。Windows 这边别用管道 `|`;引号里的管道是在手机上跑的,没问题。
 
 ---
 
-## 1. 后端自检(最重要,一条就能看大面)
+## 第 1 轮:默认启动(注入**关**),先确认新 inject 没搞坏 keystore 认证
 
-```
+刷入新包,正常开机(system_server 注入默认不发生)。确认和之前一致:
+
+```bat
 adb shell heraldctl selftest
 ```
-期望:
-- `uid=0`、`ctx=u:r:herald:s0`、`selinux=Enforcing`
-- `plugins=` 列出 `00-attestation.sh navbar.sh tango.sh`
-- `settings_put=ok`
-- `keymint=present`
-- 末尾各插件自检没有 FAIL/MISSING
-
-任一项不对 → 存下来发回:`adb shell heraldctl selftest > selftest.txt 2>&1`
-
-## 2. 日志移到 root 私有 + heraldctl log 经 broker 读(本次改动)
-
-```
-adb shell heraldctl spoof get
-adb shell heraldctl log
-```
-期望:`heraldctl log` 能列出刚才这条命令的记录,**不是**"(还没有日志)"。
-
-```
-adb shell ls -la /data/local/tmp/herald
-```
-期望:能看到 `.work` 目录(root 所有,shell 进不去是正常的),以及可能有瞬时的 `req.*` / `resp.*`。
-这里**不该有正在写的 `broker.log`**——当前日志在 `/data/adb/herald`(shell 读不到),靠上面的 `heraldctl log` 经 broker 读。
-若看到一个旧的 `broker.log`(时间戳比刚才的操作早),是旧版本包的残留,无害,可 `adb shell rm /data/local/tmp/herald/broker.log` 清掉。
-
-## 3. 轮询变快(手感,本次改动)
-
-连着跑几条,应几乎瞬间返回(以前每条要等约 0.5–1.5 秒):
-```
-adb shell heraldctl pair
-adb shell heraldctl spoof get
-adb shell heraldctl navbar status
-adb shell heraldctl tango status
-```
-
-## 4. 伪装 / 认证只读检查(覆盖 engine keybox、版本,以及三绿)
-
-```
-adb shell heraldctl spoof get
-adb shell heraldctl spoof list
+```bat
 adb shell heraldctl keybox state
-adb shell heraldctl diag
 ```
-期望:
-- `spoof get` 输出 JSON,末尾单独一行 `HERALD_GLOBAL_PIF_FLAG=on` 或 `off`
-- `spoof list` 是 JSON 数组
-- `keybox state` 正常(valid、未吊销)
-- `diag` 里 keymint 日志末尾没有 fatal/崩溃
+期望:selftest 绿(`uid=0 / ctx=u:r:herald:s0 / selinux=Enforcing / keymint=present`),keybox `valid / source=google_remote / level=tee`。再用 Play Integrity 检测器确认**三绿**(伪装之前开过就还在)。
 
-然后用你惯用的 Play Integrity 检测器确认 **三绿 / 认证维持原状**(和这次刷机前一致)。
-> 这一节只读,不要在测试里 `spoof set` / `spoof off` 去改状态。
+> 这一轮等于回归:新 inject 二进制加了 system_server 支持,但默认只注入 keystore2,keystore 路径逐字节没变——三绿必须和上个包一样。
 
-## 5. 各插件命令正常(回归)
+## 第 2 轮:打开 system_server 注入(一次性),验系统是否稳
 
+设一次性标志,然后重启:
+
+```bat
+adb shell touch /data/local/tmp/herald_ss_inject
 ```
-adb shell heraldctl navbar status
-adb shell heraldctl navbar hide
-adb shell heraldctl navbar show
-adb shell heraldctl tango status
-```
-期望:navbar hide 能隐藏导航栏、show 恢复;tango status 正常输出。
-(如果这个包装了 herald-readonly-shell,再测:`adb shell heraldctl rexec on 5` → `adb shell heraldctl rexec cat /proc/version` → `adb shell heraldctl rexec off`。没装就跳过。)
-
-## 6. 重启后持久(覆盖 keymint.dat 原子写,重点)
-
-```
+```bat
 adb reboot
 ```
-等开机完成,再:
+
+开机后**等约 20~30 秒**(注入在开机后延迟 ~8 秒才做),然后:
+
+**① 最重要——设备正常吗?**
+- 能正常进桌面、UI 不卡死、没有反复重启。这就是 P2.0 的核心结论:注入 system_server 是否可行。
+
+**② 看注入结果(走 broker 日志,root 私有日志 adb 读不到)**
+```bat
+adb shell heraldctl log
 ```
+找这几行之一:
+- `注入 system_server pid=...` + `✓ system_server 注入返回成功` → 注入成功。
+- `✗ system_server 注入未成功 ...` → 没注进去(但 system_server 没被动,系统应照常)。
+- 没有任何 `system_server` 行 → 标志没被读到(确认标志路径、是否真重启了)。
+
+**③ system_server 正常单实例**
+```bat
+adb shell "ps -A | grep -w system_server"
+```
+期望:就一个 `system_server`,没有在反复重启(隔半分钟再看 PID 不变)。
+
+**④ 三绿没被连累**(keystore 认证和 system_server 实验是两条独立注入)
+```bat
 adb shell heraldctl selftest
+```
+```bat
 adb shell heraldctl keybox state
 ```
-再用 Play Integrity 检测一次。
-期望:**密钥没丢、仍三绿**。连续重启 2–3 次都应如此(这是在验证 keymint.dat 不会因重启损坏)。
+再跑一次 Play Integrity。期望:仍三绿。
 
-## 7. 前端 App 配对(如果有前端 App)
-
-```
-adb shell heraldctl pair <App 包名>
-```
-期望:`ok paired ...`;随后 App 内能正常收发命令(覆盖写回包 O_EXCL 不影响正常流程)。
+**⑤ 用几分钟**:随便开几个 app、下拉通知、进设置,确认没有卡顿/ANR/闪退(system_server 被 hook 后所有 binder 调用都经过它,这步是看透传开销可不可接受)。
 
 ---
 
-## 出问题怎么发回
+## 判定
 
-把相关命令的完整输出各存一个文件发回(cmd 下用 `>`,别用管道):
-```
-adb shell heraldctl selftest > selftest.txt 2>&1
-adb shell heraldctl diag > diag.txt 2>&1
+- 第 2 轮**设备稳定 + 注入返回成功 + 三绿不变 + 无明显卡顿** → **P2.0 通过**,下一步做 P2.1(真正过滤 getInstalledPackages)。
+- 第 2 轮**bootloop / system_server 乱重启 / 明显卡顿** → 注入 system_server 当前方式代价太大或不可行。设备会自动恢复(标志一次性,已消费),把现象告诉我,我来定是改成更省的只拦特定事务、还是另寻路子。
+
+## 出问题怎么发回
+```bat
 adb shell heraldctl log > brokerlog.txt 2>&1
+adb shell heraldctl diag > diag.txt 2>&1
+adb shell "ps -A" > ps.txt 2>&1
 adb shell dmesg > dmesg.txt 2>&1
+adb logcat -d > logcat.txt 2>&1
 ```
-顺便说明:是哪一步、现象是什么、刷机前是否正常。
+说明:卡在哪一步、现象、第 1 轮是否正常。
