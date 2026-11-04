@@ -15,6 +15,7 @@ pub mod forward;
 pub mod hook;
 pub mod identify;
 pub mod inject;
+pub mod intercept_api;
 pub mod ipc;
 pub mod legacy;
 pub mod logging;
@@ -327,6 +328,8 @@ pub extern "C" fn entry(handle: *const c_void) -> bool {
         error!("failed to initialize HERALD RPC session: {error:#}");
         return false;
     }
+    // 注册 keystore 认证扩展;core 的 install 阶段会回调它(见 intercept_api、docs/injector-capability-design.md)。
+    intercept_api::register(hook::keystore_interceptor());
     if let Err(error) = hook::init_hook() {
         error!("failed to initialize binder ioctl hook: {error:#}");
         return false;

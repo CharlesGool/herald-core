@@ -7,11 +7,10 @@ use anyhow::{anyhow, bail, Result};
 use log::{debug, info};
 
 use super::{
-    intercept, new_close, new_dup, new_dup2, new_dup3, new_fcntl, new_fdsan_close, new_ioctl,
-    rewrite, HOOK_INIT, OLD_CLOSE, OLD_DUP, OLD_DUP2, OLD_DUP3, OLD_FCNTL, OLD_FDSAN_CLOSE,
-    OLD_IOCTL,
+    new_close, new_dup, new_dup2, new_dup3, new_fcntl, new_fdsan_close, new_ioctl, HOOK_INIT,
+    OLD_CLOSE, OLD_DUP, OLD_DUP2, OLD_DUP3, OLD_FCNTL, OLD_FDSAN_CLOSE, OLD_IOCTL,
 };
-use crate::{config, ipc};
+use crate::config;
 
 static SOTER_LIBRARIES: Mutex<Vec<(lsplt_rs::DeviceId, lsplt_rs::Inode)>> = Mutex::new(Vec::new());
 static SOTER_REFRESH: OnceLock<Result<(), String>> = OnceLock::new();
@@ -85,13 +84,12 @@ fn install_hooks() -> Result<()> {
     if !soter {
         info!("initializing binder ioctl hook");
     }
+    // 扩展的安装前准备(keystore:进程态 + 注册服务身份)。核心只负责挂 PLT;
+    // 具体由注册的扩展做(见 intercept_api)。未注册则不做任何扩展副作用。
     if !soter {
-        ipc::ensure_process_state();
-    }
-    // Native ServiceManager calls need a fresh IPCThreadState: the injected
-    // thread may be suspended inside libbinder, and hooks run inside its ioctl.
-    if !soter {
-        super::binder::start_registered_service_target_worker()?;
+        if let Some(interceptor) = crate::intercept_api::get() {
+            interceptor.before_hooks()?;
+        }
     }
 
     let mut libraries = Vec::new();
@@ -191,9 +189,11 @@ fn install_hooks() -> Result<()> {
     if close_committed == 0 && (!soter || OLD_CLOSE.load(Ordering::Acquire).is_null()) {
         bail!("Failed to commit any binder close hooks");
     }
+    // 扩展的安装后 worker(keystore:operation 发布 / mirror 恢复)。
     if !soter {
-        intercept::start_operation_publication_worker().map_err(|error| anyhow!(error))?;
-        rewrite::start_mirror_recovery_worker().map_err(|error| anyhow!(error))?;
+        if let Some(interceptor) = crate::intercept_api::get() {
+            interceptor.after_hooks()?;
+        }
     }
     info!(
         "committed {} binder ioctl hook(s) and {} close hook(s)",
