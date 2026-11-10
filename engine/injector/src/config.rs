@@ -11,6 +11,7 @@ use std::fs;
 use std::io;
 use std::os::fd::AsRawFd;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock, RwLock};
 use std::time::Duration;
 
@@ -174,6 +175,13 @@ struct WritableConfig<'a> {
 
 static CONFIG: OnceLock<RwLock<Arc<InjectorConfig>>> = OnceLock::new();
 static WATCHER_STARTED: OnceLock<()> = OnceLock::new();
+// 注入到目标进程(keystore2)里的载荷**不**起配置监听线程:它是随目标进程常驻的,
+// herald 重启时会对同一个 keystore2 重新注入(dlopen 新载荷,旧载荷的映射 / GOT 失效),
+// 旧的监听线程下一次经 PLT 调 libc 就会跳进失效地址、把 keystore2 带崩(keystore 随之锁定,
+// 分享 WLAN 等需要认证的操作全部失败,要重新解锁才恢复)。载荷不需要实时重载:重新注入时
+// 新载荷会从磁盘重新读一遍 config。launcher(一次性进程)里仍可起,注完即退、无害。
+// entry()(载荷入口)在第一次 config::get() 之前调 disable_watcher() 置位。
+static WATCHER_DISABLED: AtomicBool = AtomicBool::new(false);
 static CONFIG_FILE_WRITE_LOCK: Mutex<()> = Mutex::new(());
 
 /// A stable directory inode serializes atomic replacements across the WebUI
@@ -234,7 +242,15 @@ fn ensure_initialized() {
                 .expect("startup config loading always returns a fallback"),
         ))
     });
+    if WATCHER_DISABLED.load(Ordering::SeqCst) {
+        return;
+    }
     WATCHER_STARTED.get_or_init(|| start_watcher(path));
+}
+
+/// 关掉配置文件监听线程(供注入载荷在初始化前调用,见 WATCHER_DISABLED)。
+pub fn disable_watcher() {
+    WATCHER_DISABLED.store(true, Ordering::SeqCst);
 }
 
 fn config_path() -> PathBuf {

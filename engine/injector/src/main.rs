@@ -305,6 +305,10 @@ pub extern "C" fn entry(handle: *const c_void) -> bool {
     // This runs inside the target process, so we must initialize logging again
     // for that process. On Android this enables both logcat and stdout logging.
     logging::init_logger_fallback(LevelFilter::Debug);
+    // 载荷随 keystore2 常驻,但 herald 重启会重新注入;常驻的配置监听线程会在旧载荷映射失效后
+    // 崩掉 keystore2(见 config::disable_watcher)。所以在第一次读 config 之前就关掉监听,
+    // 重新注入时新载荷自然会重读配置。
+    config::disable_watcher();
     let config = config::get();
     if config::parse_level_filter(&config.main.log_level).is_none() {
         warn!(
